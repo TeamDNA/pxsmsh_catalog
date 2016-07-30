@@ -6,7 +6,7 @@ randomServer:
   tty: true
   command:
   - ./worker3
-  image: slamper/pixsmash_api:0.5.6
+  image: slamper/pixsmash_api:b9222aa808405a03016ea1f51edbdb094f104b2b
   links:
   - redis:redis
   stdin_open: true
@@ -19,7 +19,7 @@ Broker:
   tty: true
   command:
   - ./broker
-  image: slamper/pixsmash_api:0.5.6
+  image: slamper/pixsmash_api:b9222aa808405a03016ea1f51edbdb094f104b2b
   links:
   - 'nsqhostnsqhost:'
   - 'redis:redis'
@@ -37,7 +37,7 @@ api:
   labels:
     io.rancher.scheduler.affinity:host_label: api=true
   tty: true
-  image: slamper/pixsmash_api:0.5.6
+  image: slamper/pixsmash_api:b9222aa808405a03016ea1f51edbdb094f104b2b
   links:
   - randomServer:randomServer
   - 'nsqhost:nsqhost'
@@ -55,7 +55,7 @@ PushSender:
   tty: true
   command:
   - ./worker
-  image: slamper/pixsmash_api:0.5.6
+  image: slamper/pixsmash_api:b9222aa808405a03016ea1f51edbdb094f104b2b
   links:
   - 'redis:redis'
   - 'nsqlookup:nsqlookup'
@@ -73,7 +73,7 @@ expireWorker:
   tty: true
   command:
   - ./worker2
-  image: slamper/pixsmash_api:0.5.6
+  image: slamper/pixsmash_api:b9222aa808405a03016ea1f51edbdb094f104b2b
   links:
   - 'nsqhost:nsqhost'
   - 'redis:redis'
