@@ -85,7 +85,6 @@ mongodb:
   ports:
   - 64952:27017/tcp
   labels:
-    io.rancher.sidekicks: mongo-datavolume
     io.rancher.scheduler.affinity:host_label: db=true
   tty: true
   image: mongo:3.3

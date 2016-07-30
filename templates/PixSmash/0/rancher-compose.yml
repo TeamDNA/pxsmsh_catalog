@@ -58,5 +58,3 @@ PushSender:
   scale: 1
 expireWorker:
   scale: 1
-mongo-datavolume:
-  scale: 1
