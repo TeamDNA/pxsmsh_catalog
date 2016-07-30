@@ -18,7 +18,7 @@ node-exporter:
 
 prom-conf:
     tty: true
-    image: TeamDNA/prom-conf:10
+    image: teamdna/prom-conf:10
     volumes:
       - /etc/prom-conf/
 
