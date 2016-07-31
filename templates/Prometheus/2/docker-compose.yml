@@ -1,0 +1,62 @@
+ranch-eye:
+  ports:
+  - 9104:9104/tcp
+  labels:
+    io.rancher.scheduler.global: 'true'
+    io.rancher.container.dns: true
+  tty: true
+  image: infinityworks/ranch-eye:03
+  stdin_open: true
+  net: "host"
+
+node-exporter:
+  labels:
+    io.rancher.scheduler.global: 'true'
+  tty: true
+  image: prom/node-exporter:latest
+  stdin_open: true
+
+prom-conf:
+    tty: true
+    image: teamdna/prom-conf:12
+    volumes:
+      - /etc/prom-conf/
+
+prometheus:
+    tty: true
+    image: prom/prometheus:v1.0.1
+    command: -alertmanager.url=http://alertmanager:9093 -config.file=/etc/prom-conf/prometheus.yml -storage.local.path=/prometheus -web.console.libraries=/etc/prometheus/console_libraries -web.console.templates=/etc/prometheus/consoles
+    ports:
+      - 9090
+    labels:
+      io.rancher.sidekicks: prom-conf
+      io.rancher.scheduler.affinity:host_label: management=true
+    volumes_from:
+       - prom-conf
+    links:
+      - ranch-eye:ranch-eye
+      - node-exporter:node-exporter
+      - prometheus-rancher-exporter:prometheus-rancher-exporter
+
+grafana:
+    tty: true
+    image: grafana/grafana:3.1.0
+    ports:
+      - 80:3000
+    labels:
+      io.rancher.scheduler.affinity:host_label: management=true
+    volumes:
+      - /data/grafana/:/var/lib/grafana/
+    environment:
+      GF_INSTALL_PLUGINS: grafana-clock-panel,mtanda-histogram-panel,raintank-worldping-app,grafana-piechart-panel
+    links:
+      - prometheus:prometheus
+      - prometheus-rancher-exporter:prometheus-rancher-exporter
+
+prometheus-rancher-exporter:
+    tty: true
+    labels:
+      io.rancher.scheduler.affinity:host_label: management=true
+      io.rancher.container.create_agent: true
+      io.rancher.container.agent.role: environment
+    image: infinityworks/prometheus-rancher-exporter:04
