@@ -1,0 +1,64 @@
+.catalog:
+  name: "PixSmash Backend"
+  version: "0.5.8"
+  description: "Server System for the PixSmash MobileGame"
+  uuid: pxsmsh
+  minimum_rancher_version: v0.59.0
+  questions:
+    - variable: "GCM_KEY"
+      label: "FCM Key"
+      description: "The GCM/FCM key to send notifications"
+      default: "ABBCC"
+      type: "string"
+      required: true
+
+randomServer:
+  scale: 1
+nsqlookup:
+  scale: 1
+  health_check:
+    port: 4160
+    interval: 2000
+    unhealthy_threshold: 3
+    strategy: recreate
+    response_timeout: 2000
+    healthy_threshold: 2
+redis:
+  scale: 1
+  health_check:
+    port: 6379
+    interval: 2000
+    unhealthy_threshold: 3
+    strategy: recreate
+    response_timeout: 2000
+    healthy_threshold: 2
+nsqhost:
+  scale: 1
+  health_check:
+    port: 4150
+    interval: 2000
+    unhealthy_threshold: 3
+    strategy: recreate
+    response_timeout: 2000
+    healthy_threshold: 2
+Broker:
+  scale: 1
+mongodb:
+  scale: 1
+  health_check:
+    port: 27017
+    interval: 2000
+    unhealthy_threshold: 3
+    strategy: recreate
+    response_timeout: 2000
+    healthy_threshold: 2
+mongodb-exporter:
+  scale: 1
+redis-exporter:
+  scale: 1
+api:
+  scale: 1
+PushSender:
+  scale: 1
+expireWorker:
+  scale: 1
