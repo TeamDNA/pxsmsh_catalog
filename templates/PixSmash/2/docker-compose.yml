@@ -1,0 +1,150 @@
+randomServer:
+  environment:
+    REDIS_HOST: redis:6379
+  labels:
+    io.rancher.scheduler.affinity:host_label: api=true
+  tty: true
+  command:
+  - ./worker3
+  image: slamper/pixsmash_api:0.5.9
+  links:
+  - redis:redis
+  stdin_open: true
+Broker:
+  environment:
+    NSQ_HOST: nsqhost:4150
+    REDIS_HOST: redis:6379
+  labels:
+    io.rancher.scheduler.affinity:host_label: api=true
+  tty: true
+  command:
+  - ./broker
+  image: slamper/pixsmash_api:0.5.9
+  links:
+  - 'nsqhostnsqhost:'
+  - 'redis:redis'
+  stdin_open: true
+api:
+  ports:
+  - 80:8080/tcp
+  environment:
+    INFLUX_DB: pixsmash
+    MONGO_HOST: mongodb
+    NSQ_HOST: nsqhost:4150
+    RANDOM_RPC_DSN: randomServer:1337
+    REDIS_HOST: redis:6379
+  labels:
+    io.rancher.scheduler.affinity:host_label: api=true
+  tty: true
+  image: slamper/pixsmash_api:0.5.9
+  links:
+  - randomServer:randomServer
+  - 'nsqhost:nsqhost'
+  - 'redis:redis'
+  volumes:
+  - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
+  stdin_open: true
+PushSender:
+  environment:
+    GCM_KEY: ${GCM_KEY}
+    NSQDL_HOST: nsqlookup:4161
+    REDIS_HOST: redis:6379
+  labels:
+    io.rancher.scheduler.affinity:host_label: api=true
+  tty: true
+  command:
+  - ./worker
+  image: slamper/pixsmash_api:0.5.9
+  links:
+  - 'redis:redis'
+  - 'nsqlookup:nsqlookup'
+  volumes:
+  - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
+  stdin_open: true
+expireWorker:
+  environment:
+    MONGO_HOST: mongodb
+    NSQDL_HOST: nsqlookup:4161
+    NSQ_HOST: nsqhost:4150
+    REDIS_HOST: redis:6379
+  labels:
+    io.rancher.scheduler.affinity:host_label: api=true
+  tty: true
+  command:
+  - ./worker2
+  image: slamper/pixsmash_api:0.5.9
+  links:
+  - 'nsqhost:nsqhost'
+  - 'redis:redis'
+  - 'nsqlookup:nsqlookup'
+  stdin_open: true
+
+#Begin Database Section
+mongodb:
+  ports:
+  - 64952:27017/tcp
+  labels:
+    io.rancher.scheduler.affinity:host_label: db=true
+    io.rancher.sidekicks: mongodb-exporter
+  tty: true
+  image: mongo:3.3
+  volumes:
+  - /data/mongo:/data/db
+  stdin_open: true
+mongodb-exporter:
+  labels:
+    io.rancher.container.pull_image: always
+  environment:
+    MONGODB_URL: mongodb://mongodb:27017
+  tty: true
+  image: teamdna/mongodb_exporter:latest
+  stdin_open: true
+
+redis:
+  ports:
+  - 61979:6379/tcp
+  labels:
+    io.rancher.scheduler.affinity:host_label: db=true
+    io.rancher.sidekicks: redis-exporter
+  tty: true
+  command:
+  - redis-server
+  - --appendonly
+  - 'yes'
+  image: redis:3.2-alpine
+  volumes:
+  - /data/redis:/data
+  stdin_open: true
+redis-exporter:
+  labels:
+    io.rancher.container.pull_image: always
+  command: -redis.addr=redis:6379
+  tty: true
+  image: 21zoo/redis_exporter:latest
+  stdin_open: true
+
+#Begin Queue Section
+nsqlookup:
+  ports:
+  - 4161:4161/tcp
+  labels:
+    io.rancher.scheduler.affinity:host_label: db=true
+  command:
+  - /nsqlookupd
+  tty: true
+  image: nsqio/nsq
+  stdin_open: true
+nsqhost:
+  ports:
+  - 4150:4150/tcp
+  labels:
+    io.rancher.scheduler.affinity:host_label: db=true
+  command:
+  - /nsqd
+  - --lookupd-tcp-address=lookupd:4160
+  - --broadcast-address=nsqhost
+  tty: true
+  image: nsqio/nsq
+  links:
+  - nsqlookup:lookupd
+  stdin_open: true
