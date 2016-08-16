@@ -1,0 +1,76 @@
+.catalog:
+  name: "Prometheus"
+  version: "1.1.5"
+  description: "Prometheus Monitoring Solution"
+  uuid: prometheus-2
+  minimum_rancher_version: v0.59.0
+  questions:
+    - variable: "DOMAIN"
+      label: "Management Domain"
+      description: "The domain where the admin interfaces are hosted on"
+      default: "example.com"
+      type: "string"
+      required: true
+
+ranch-eye:
+  upgrade_strategy:
+    start_first: true
+
+node-exporter:
+  upgrade_strategy:
+    start_first: true
+
+prometheus:
+  scale: 1
+  health_check:
+    port: 9090
+    interval: 5000
+    unhealthy_threshold: 3
+    request_line: ''
+    healthy_threshold: 2
+    response_timeout: 5000
+
+grafana:
+  scale: 1
+  health_check:
+    port: 3000
+    interval: 5000
+    unhealthy_threshold: 3
+    request_line: ''
+    healthy_threshold: 2
+    response_timeout: 5000
+
+prometheus-rancher-exporter:
+  scale: 1
+  upgrade_strategy:
+    start_first: true
+  health_check:
+    port: 9010
+    interval: 5000
+    unhealthy_threshold: 3
+    request_line: ''
+    healthy_threshold: 2
+    response_timeout: 5000
+
+lb:
+  scale: 1
+  load_balancer_config:
+    haproxy_config: {}
+  health_check:
+    port: 42
+    interval: 2000
+    unhealthy_threshold: 3
+    healthy_threshold: 2
+    response_timeout: 2000
+
+psadmin:
+  scale: 1
+  health_check:
+    port: 8080
+    interval: 2000
+    initializing_timeout: 60000
+    unhealthy_threshold: 3
+    strategy: recreate
+    response_timeout: 2000
+    request_line: GET "/" "HTTP/1.0"
+    healthy_threshold: 2
